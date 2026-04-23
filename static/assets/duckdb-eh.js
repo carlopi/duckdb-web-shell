@@ -333,7 +333,7 @@ var DuckDB = (() => {
             var tempDouble;
             var tempI64;
             var ASM_CONSTS = {
-                2511096: ($0, $1, $2, $3) => {
+                2521208: ($0, $1, $2, $3) => {
                     var url = UTF8ToString($0);
                     if (typeof XMLHttpRequest === "undefined") {
                         return 0
@@ -352,7 +352,8 @@ var DuckDB = (() => {
                         try {
                             var z = encodeURI(UTF8ToString(ptr1));
                             if (z === "Host") z = "X-Host-Override";
-                            if (z === "User-Agent") {} else if (z === "Authorization") {
+                            if (z === "User-Agent") z = "X-user-agent";
+                            if (z === "Authorization") {
                                 xhr.setRequestHeader(z, UTF8ToString(ptr2))
                             } else {
                                 xhr.setRequestHeader(z, encodeURI(UTF8ToString(ptr2)))
@@ -426,7 +427,7 @@ var DuckDB = (() => {
                     Module.HEAPU8.set(LEN123, fileOnWasmHeap);
                     return fileOnWasmHeap
                 },
-                2513369: ($0, $1, $2, $3, $4, $5) => {
+                2523492: ($0, $1, $2, $3, $4, $5) => {
                     var url = UTF8ToString($0);
                     if (typeof XMLHttpRequest === "undefined") {
                         return 0
@@ -489,7 +490,7 @@ var DuckDB = (() => {
                     Module.HEAPU8.set(LEN123, fileOnWasmHeap);
                     return fileOnWasmHeap
                 },
-                2514989: ($0, $1, $2, $3) => {
+                2525112: ($0, $1, $2, $3) => {
                     var url = UTF8ToString($0);
                     if (typeof XMLHttpRequest === "undefined") {
                         return 0
@@ -505,6 +506,7 @@ var DuckDB = (() => {
                     while (i < len * 2) {
                         var ptr1 = HEAP32[$2 / 4 + i >>> 0];
                         var ptr2 = HEAP32[$2 / 4 + i + 1 >>> 0];
+                        console.log("HEAD", UTF8ToString(ptr1), UTF8ToString(ptr2));
                         try {
                             var z = encodeURI(UTF8ToString(ptr1));
                             if (z === "Host") z = "X-Host-Override";
@@ -583,7 +585,7 @@ var DuckDB = (() => {
                     Module.HEAPU8.set(LEN123, fileOnWasmHeap);
                     return fileOnWasmHeap
                 },
-                2517273: ($0, $1, $2, $3) => {
+                2527457: ($0, $1, $2, $3) => {
                     var url = UTF8ToString($0);
                     if (typeof XMLHttpRequest === "undefined") {
                         return 0
@@ -642,7 +644,7 @@ var DuckDB = (() => {
                     Module.HEAPU8.set(LEN123, fileOnWasmHeap);
                     return fileOnWasmHeap
                 },
-                2518680: ($0, $1, $2, $3, $4, $5) => {
+                2528864: ($0, $1, $2, $3, $4, $5) => {
                     var url = UTF8ToString($0);
                     if (typeof XMLHttpRequest === "undefined") {
                         return 0
@@ -705,14 +707,14 @@ var DuckDB = (() => {
                     Module.HEAPU8.set(LEN123, fileOnWasmHeap);
                     return fileOnWasmHeap
                 },
-                2520218: ($0, $1) => {
+                2530402: ($0, $1) => {
                     var jsString = typeof runtime == "object" && runtime && typeof runtime.whereToLoad == "function" && runtime.whereToLoad ? runtime.whereToLoad(UTF8ToString($0)) : UTF8ToString($1);
                     var lengthBytes = lengthBytesUTF8(jsString) + 1;
                     var stringOnWasmHeap = _malloc(lengthBytes);
                     stringToUTF8(jsString, stringOnWasmHeap, lengthBytes);
                     return stringOnWasmHeap
                 },
-                2520584: ($0, $1) => {
+                2530768: ($0, $1) => {
                     var url = UTF8ToString($0);
                     if (typeof XMLHttpRequest === "undefined") {
                         const os = require("os");
@@ -786,13 +788,13 @@ var DuckDB = (() => {
                     FS.writeFile(UTF8ToString($1), new Uint8Array(uInt8Array));
                     return fileOnWasmHeap
                 },
-                2523225: $0 => {
+                2533409: $0 => {
                     if (!$0) {
                         AL.alcErr = 40964;
                         return 1
                     }
                 },
-                2523273: $0 => {
+                2533457: $0 => {
                     if (!AL.currentCtx) {
                         err("alGetProcAddress() called without a valid context");
                         return 1
@@ -1025,7 +1027,7 @@ var DuckDB = (() => {
                     newDSO("__main__", 0, wasmImports)
                 }
             };
-            var ___heap_base = 3661312;
+            var ___heap_base = 3671680;
             var alignMemory = (size, alignment) => Math.ceil(size / alignment) * alignment;
             var getMemory = size => {
                 if (runtimeInitialized) {
@@ -1104,19 +1106,11 @@ var DuckDB = (() => {
                 var wrappedFunc = instance.exports["f"];
                 return wrappedFunc
             };
-            var wasmTableMirror = [];
             var wasmTable = new WebAssembly.Table({
-                initial: 25591,
+                initial: 25599,
                 element: "anyfunc"
             });
-            var getWasmTableEntry = funcPtr => {
-                var func = wasmTableMirror[funcPtr];
-                if (!func) {
-                    if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
-                    wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr)
-                }
-                return func
-            };
+            var getWasmTableEntry = funcPtr => wasmTable.get(funcPtr);
             var updateTableMap = (offset, count) => {
                 if (functionsInTableMap) {
                     for (var i = offset; i < offset + count; i++) {
@@ -1150,10 +1144,7 @@ var DuckDB = (() => {
                 }
                 return wasmTable.length - 1
             };
-            var setWasmTableEntry = (idx, func) => {
-                wasmTable.set(idx, func);
-                wasmTableMirror[idx] = wasmTable.get(idx)
-            };
+            var setWasmTableEntry = (idx, func) => wasmTable.set(idx, func);
             var addFunction = (func, sig) => {
                 var rtn = getFunctionAddress(func);
                 if (rtn) {
@@ -1610,12 +1601,12 @@ var DuckDB = (() => {
                 value: "i32",
                 mutable: false
             }, 1024);
-            var ___stack_high = 3661312;
-            var ___stack_low = 2612736;
+            var ___stack_high = 3671680;
+            var ___stack_low = 2623104;
             var ___stack_pointer = new WebAssembly.Global({
                 value: "i32",
                 mutable: true
-            }, 3661312);
+            }, 3671680);
             var PATH = {
                 isAbs: path => path.charAt(0) === "/",
                 splitPath: filename => {
@@ -26296,15 +26287,15 @@ var DuckDB = (() => {
                 wasmExports = Object.assign({}, wasmExports);
                 var makeWrapper_pp = f => a0 => f(a0) >>> 0;
                 var makeWrapper_p = f => () => f() >>> 0;
-                var makeWrapper_ppp = f => (a0, a1) => f(a0, a1) >>> 0;
                 var makeWrapper_pppp = f => (a0, a1, a2) => f(a0, a1, a2) >>> 0;
+                var makeWrapper_ppp = f => (a0, a1) => f(a0, a1) >>> 0;
                 var makeWrapper_p_ = f => a0 => f(a0) >>> 0;
                 var makeWrapper_pP = f => a0 => f(a0) >>> 0;
                 wasmExports["__getTypeName"] = makeWrapper_pp(wasmExports["__getTypeName"]);
                 wasmExports["pthread_self"] = makeWrapper_p(wasmExports["pthread_self"]);
+                wasmExports["memcpy"] = makeWrapper_pppp(wasmExports["memcpy"]);
                 wasmExports["malloc"] = makeWrapper_pp(wasmExports["malloc"]);
                 wasmExports["calloc"] = makeWrapper_ppp(wasmExports["calloc"]);
-                wasmExports["memcpy"] = makeWrapper_pppp(wasmExports["memcpy"]);
                 wasmExports["__errno_location"] = makeWrapper_p(wasmExports["__errno_location"]);
                 wasmExports["strerror"] = makeWrapper_p_(wasmExports["strerror"]);
                 wasmExports["emscripten_builtin_malloc"] = makeWrapper_pp(wasmExports["emscripten_builtin_malloc"]);
