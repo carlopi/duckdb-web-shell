@@ -133,7 +133,6 @@ const WORKER_URL = './static/assets/worker.js';
 // Path to the duckdb-wasm .wasm file (passed to worker for instantiation)
 const DUCKDB_WASM_URL = './duckdb-eh.wasm';
 
-// === Mobile hamburger toggle ===
 const hamburgerBtn = document.querySelector('.hamburger');
 const landingMenu = document.querySelector('.landingmenu');
 if (hamburgerBtn && landingMenu) {
@@ -141,20 +140,17 @@ if (hamburgerBtn && landingMenu) {
     hamburgerBtn.classList.toggle('is-active');
     landingMenu.classList.toggle('slidein');
   });
-  // Close menu when a non-submenu nav link is tapped
   landingMenu.querySelectorAll('nav a').forEach(a => {
     a.addEventListener('click', () => {
-      if (a.closest('.hasSub')) return; // submenu trigger handled below
+      if (a.closest('.hasSub')) return;
       hamburgerBtn.classList.remove('is-active');
       landingMenu.classList.remove('slidein');
     });
   });
 }
 
-// === Submenu (Datasets) open/close on mobile ===
 document.querySelectorAll('.landingmenu .hasSub').forEach(sub => {
   sub.addEventListener('click', (e) => {
-    // Only intercept on mobile; desktop keeps native hover behavior.
     if (window.matchMedia('(min-width: 901px)').matches) return;
     e.preventDefault();
     sub.classList.toggle('open');
@@ -344,16 +340,27 @@ window.shellConnect = (arg) => {
 };
 
 // === Dark mode ===
-const LIGHT_THEME = {
-  background: '#fafafa', foreground: '#1e1e1e', cursor: '#1e1e1e', cursorAccent: '#fafafa',
-  brightBlack: '#808080', selectionBackground: '#b5d5ff', selectionForeground: '#000000',
-};
-const DARK_THEME = {
-  background: '#0d0d0d', foreground: '#d4d4d4', cursor: '#d4d4d4', cursorAccent: '#0d0d0d',
-  brightBlack: '#808080', selectionBackground: '#264f78', selectionForeground: '#ffffff',
-};
-
 function isDark() { return document.documentElement.classList.contains('darkmode'); }
+
+const _themeProbe = document.createElement('span');
+_themeProbe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
+document.body.appendChild(_themeProbe);
+function readVar(name, fallback) {
+  _themeProbe.style.color = '';
+  _themeProbe.style.color = `var(${name}, ${fallback || '#000'})`;
+  return getComputedStyle(_themeProbe).color || fallback;
+}
+
+function getXtermTheme() {
+  return {
+    background: readVar('--cli-background'),
+    foreground: readVar('--cli-primary'),
+    cursor: readVar('--cli-primary'),
+    cursorAccent: readVar('--cli-background'),
+    selectionBackground: isDark() ? '#264f78' : '#b5d5ff',
+    selectionForeground: isDark() ? '#ffffff' : '#000000',
+  };
+}
 
 // Dark mode toggle — matches duckdb.org (uses localStorage key "mode", button class ".mode")
 document.querySelector('.mode').addEventListener('click', function() {
@@ -363,9 +370,8 @@ document.querySelector('.mode').addEventListener('click', function() {
   localStorage.setItem('mode', dark ? 'dark' : 'light');
   document.documentElement.classList.add('disable-transitions');
   setTimeout(() => document.documentElement.classList.remove('disable-transitions'), 300);
-  // Update xterm theme
   if (typeof term !== 'undefined') {
-    term.options.theme = dark ? DARK_THEME : LIGHT_THEME;
+    term.options.theme = getXtermTheme();
   }
   // Update shell highlight mode
   if (wasmModule && wasmModule._wasm_set_dark_mode) {
@@ -414,7 +420,7 @@ const term = new Terminal({
   fontSize: 13,
   allowProposedApi: true,
   linkHandler: linkHandler,
-  theme: isDark() ? DARK_THEME : LIGHT_THEME,
+  theme: getXtermTheme(),
 });
 term.open(document.getElementById('terminal'));
 
